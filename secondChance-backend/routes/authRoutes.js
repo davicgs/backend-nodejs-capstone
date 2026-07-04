@@ -17,10 +17,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 router.post('/register', async (req, res) => {
     try {
-      //Connect to `secondChance` in MongoDB through `connectToDatabase` in `db.js`.
-	  const db = await connectToDatabase();
-      const collection = db.collection("users");
-      const existingEmail = await collection.findOne({ email: req.body.email });
+        //Connect to `secondChance` in MongoDB through `connectToDatabase` in `db.js`.
+        const db = await connectToDatabase();
+        const collection = db.collection("users");
+        const existingEmail = await collection.findOne({ email: req.body.email });
 
         if (existingEmail) {
             logger.error('Email id already exists');
@@ -29,8 +29,8 @@ router.post('/register', async (req, res) => {
 
         const salt = await bcryptjs.genSalt(10);
         const hash = await bcryptjs.hash(req.body.password, salt);
-        const email=req.body.email;
-        console.log('email is',email);
+        const email = req.body.email;
+        console.log('email is', email);
         const newUser = await collection.insertOne({
             email: req.body.email,
             firstName: req.body.firstName,
@@ -47,7 +47,7 @@ router.post('/register', async (req, res) => {
 
         const authtoken = jwt.sign(payload, JWT_SECRET);
         logger.info('User registered successfully');
-        res.json({ authtoken,email });
+        res.json({ authtoken, email });
     } catch (e) {
         logger.error(e);
         return res.status(500).send('Internal server error');
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
 
         if (theUser) {
             let result = await bcryptjs.compare(req.body.password, theUser.password)
-            if(!result) {
+            if (!result) {
                 logger.error('Passwords do not match');
                 return res.status(404).json({ error: 'Wrong pasword' });
             }
@@ -88,17 +88,17 @@ router.post('/login', async (req, res) => {
     } catch (e) {
         logger.error(e);
         return res.status(500).json({ error: 'Internal server error', details: e.message });
-      }
+    }
 });
 
 // update API
 router.put('/update', async (req, res) => {
-	// Task 2: Validate the input using `validationResult` and return approiate message if there is an error.
+    // Task 2: Validate the input using `validationResult` and return approiate message if there is an error.
 
     const errors = validationResult(req);
 
-	// Task 3: Check if `email` is present in the header and throw an appropriate error message if not present.
-	if (!errors.isEmpty()) {
+    // Task 3: Check if `email` is present in the header and throw an appropriate error message if not present.
+    if (!errors.isEmpty()) {
         logger.error('Validation errors in update request', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
@@ -109,13 +109,13 @@ router.put('/update', async (req, res) => {
         if (!email) {
             logger.error('Email not found in the request headers');
             return res.status(400).json({ error: "Email not found in the request headers" });
-		}
+        }
 
-		//Task 4: Connect to MongoDB
-		const db = await connectToDatabase();
+        //Task 4: Connect to MongoDB
+        const db = await connectToDatabase();
         const collection = db.collection("users");
 
-		//Task 5: Find user credentials
+        //Task 5: Find user credentials
         const existingUser = await collection.findOne({ email });
 
         if (!existingUser) {
@@ -126,14 +126,14 @@ router.put('/update', async (req, res) => {
         existingUser.firstName = req.body.name;
         existingUser.updatedAt = new Date();
 
-		//Task 6: Update user credentials in DB
+        //Task 6: Update user credentials in DB
         const updatedUser = await collection.findOneAndUpdate(
             { email },
             { $set: existingUser },
             { returnDocument: 'after' }
         );
 
-		//Task 7: Create JWT authentication with user._id as payload using secret key from .env file
+        //Task 7: Create JWT authentication with user._id as payload using secret key from .env file
         const payload = {
             user: {
                 id: updatedUser._id.toString(),
